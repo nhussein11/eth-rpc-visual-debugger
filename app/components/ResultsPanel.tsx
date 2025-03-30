@@ -15,7 +15,6 @@ export const ResultsPanel = ({
   loading,
   removeRequest,
 }: ResultsPanelProps) => {
-  console.log("activeRequests: " + activeRequests);
   return (
     <div className="w-96 space-y-6 h-full">
       <div className="flex justify-between items-center">

@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { ResultType, HexValue } from "../types";
+import { MdCheckCircle, MdOutlineContentCopy } from "react-icons/md";
 
 interface ResultCardProps {
   method: string;
@@ -95,6 +96,7 @@ export const ResultCard = ({
 
   const displayResult = result ? transformResult(result) : null;
   const hexValues = result?.result ? findHexValues(result.result) : [];
+  const jsonString = JSON.stringify(displayResult, null, 2);
 
   if (loading) {
     return (
@@ -185,16 +187,24 @@ export const ResultCard = ({
               return (
                 <div
                   key={idx}
-                  className="flex items-center justify-between bg-gray-50 p-2 rounded"
+                  className="relative flex items-center justify-between bg-gray-50 p-2 rounded"
                 >
-                  <span className="font-mono">{displayValue.toString()}</span>
+                  <div className="font-mono truncate mr-16 w-full">
+                    {displayValue.toString()}
+                  </div>
                   <button
                     onClick={() =>
                       copyToClipboard(displayValue.toString(), fieldId)
                     }
-                    className="text-gray-400 hover:text-gray-600 text-xs"
+                    className="absolute right-2 text-gray-400 cursor-pointer hover:text-gray-600 text-xs"
                   >
-                    {copiedField === fieldId ? "Copied!" : "Copy"}
+                    {copiedField === fieldId ? (
+                      <span className="flex flex-row items-center gap-2">
+                        Copied! <MdCheckCircle size={16} />
+                      </span>
+                    ) : (
+                      <MdOutlineContentCopy size={16} />
+                    )}
                   </button>
                 </div>
               );
@@ -202,9 +212,23 @@ export const ResultCard = ({
           </div>
         </div>
       )}
-      <pre className="bg-gray-100 p-3 rounded text-xs overflow-x-auto">
-        {JSON.stringify(displayResult, null, 2)}
-      </pre>
+      <div className="relative">
+        <pre className="bg-gray-100 p-3 rounded text-xs overflow-x-auto">
+          {jsonString}
+        </pre>
+        <button
+          onClick={() => copyToClipboard(jsonString, "json-result")}
+          className="absolute top-2 right-2 text-gray-400 cursor-pointer hover:text-gray-600"
+        >
+          {copiedField === "json-result" ? (
+            <span className="flex flex-row items-center gap- px-2 py-1 rounded text-xs">
+              Copied! <MdCheckCircle size={24} />
+            </span>
+          ) : (
+            <MdOutlineContentCopy size={24} className=" p-1 rounded" />
+          )}
+        </button>
+      </div>
     </div>
   );
 };
