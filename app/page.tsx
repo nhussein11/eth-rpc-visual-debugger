@@ -1,11 +1,19 @@
 "use client";
 
-import { useState } from "react";
-import MethodSelector from "./components/MethodSelector";
-import InputForm from "./components/InputForm";
-import ResultsPanel from "./components/ResultsPanel";
-import { MethodConfig, FormDataType, ResultType } from "./types";
+import { ChangeEvent, useState } from "react";
 import { Header } from "./components/Header";
+import { MethodSelector } from "./components/MethodSelector";
+import { InputForm } from "./components/InputForm";
+import { ResultsPanel } from "./components/ResultsPanel";
+import {
+  MethodConfig,
+  FormDataType,
+  ResultType,
+  CallObject,
+  TransactionObject,
+} from "./types";
+
+const WESTEND_AH_RPC_ENDPOINT = "https://westend-asset-hub-eth-rpc.polkadot.io";
 
 export default function Home() {
   const [selectedMethod, setSelectedMethod] = useState<string | null>(null);
@@ -31,7 +39,7 @@ export default function Home() {
   });
 
   const handleInputChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
+    e: ChangeEvent<HTMLInputElement | HTMLSelectElement>
   ) => {
     const { name, value, type } = e.target;
     const checked = (e.target as HTMLInputElement).checked;
@@ -42,29 +50,13 @@ export default function Home() {
     });
   };
 
-  interface CallObject {
-    to: string;
-    data: string;
-    from?: string;
-  }
-
-  interface TransactionObject {
-    from: string;
-    to?: string;
-    gas?: string;
-    gasPrice?: string;
-    value?: string;
-    data?: string;
-    nonce?: string;
-  }
-
   const executeRpcCall = async (method: string, params: unknown[] = []) => {
     const requestId = `${method}-${results.length + 1}`;
     setLoading((prev) => ({ ...prev, [requestId]: true }));
 
     try {
       const response = await fetch(
-        "https://westend-asset-hub-eth-rpc.polkadot.io",
+        WESTEND_AH_RPC_ENDPOINT,
         {
           method: "POST",
           headers: {

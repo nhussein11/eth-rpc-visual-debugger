@@ -7,11 +7,11 @@ interface MethodSelectorProps {
   setSelectedMethod: (method: string) => void;
 }
 
-const MethodSelector: React.FC<MethodSelectorProps> = ({
+export const MethodSelector = ({
   methodConfigs,
   selectedMethod,
   setSelectedMethod,
-}) => {
+} : MethodSelectorProps) => {
   return (
     <div className="method-selector space-y-2">
       {Object.entries(methodConfigs).map(([method]) => (
@@ -31,7 +31,6 @@ const MethodSelector: React.FC<MethodSelectorProps> = ({
                 >
                   {method}
                 </button>
-            
             </div>
           </div>
         </div>
@@ -39,5 +38,3 @@ const MethodSelector: React.FC<MethodSelectorProps> = ({
     </div>
   );
 };
-
-export default MethodSelector;

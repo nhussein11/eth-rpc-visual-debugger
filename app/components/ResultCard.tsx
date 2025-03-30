@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { ResultType } from "../types";
+import { ResultType, HexValue } from "../types";
 
 interface ResultCardProps {
   method: string;
@@ -8,18 +8,12 @@ interface ResultCardProps {
   onRemove: () => void;
 }
 
-interface HexValue {
-  path: string[];
-  value: string;
-  readableValue: string | number;
-}
-
-const ResultCard: React.FC<ResultCardProps> = ({
+export const ResultCard = ({
   method,
   result,
   loading,
   onRemove,
-}) => {
+}: ResultCardProps) => {
   const [displayMode, setDisplayMode] = useState<"hex" | "readable">("hex");
   const [copiedField, setCopiedField] = useState<string | null>(null);
 
@@ -39,7 +33,10 @@ const ResultCard: React.FC<ResultCardProps> = ({
     return value;
   };
 
-  const findHexValues = (obj: unknown, currentPath: string[] = []): HexValue[] => {
+  const findHexValues = (
+    obj: unknown,
+    currentPath: string[] = []
+  ): HexValue[] => {
     if (!obj) return [];
     let hexValues: HexValue[] = [];
     if (typeof obj === "string" && obj.startsWith("0x")) {
@@ -140,16 +137,16 @@ const ResultCard: React.FC<ResultCardProps> = ({
     >
       <div className="flex justify-between items-center mb-4">
         <div className="flex flex-col">
-          <h3 className="font-medium">{method.split('-')[0]}</h3>
-          <span className="text-xs">{method.split('-')[1]}</span>
+          <h3 className="font-medium">{method.split("-")[0]}</h3>
+          <span className="text-xs">{method.split("-")[1]}</span>
         </div>
-        
+
         <div className="flex h-8 rounded-full overflow-hidden border border-gray-200">
           <button
             onClick={() => setDisplayMode("hex")}
             className={`px-3 py-1 text-xs font-medium cursor-pointer transition-colors duration-200 ${
-              displayMode === "hex" 
-                ? "bg-pink-500 text-white" 
+              displayMode === "hex"
+                ? "bg-pink-500 text-white"
                 : "bg-white text-gray-700 hover:bg-gray-300"
             }`}
           >
@@ -158,15 +155,15 @@ const ResultCard: React.FC<ResultCardProps> = ({
           <button
             onClick={() => setDisplayMode("readable")}
             className={`px-3 py-1 text-xs font-medium cursor-pointer transition-colors duration-200 ${
-              displayMode === "readable" 
-                ? "bg-pink-500 text-white" 
+              displayMode === "readable"
+                ? "bg-pink-500 text-white"
                 : "bg-white text-gray-700 hover:bg-gray-300"
             }`}
           >
             Readable
           </button>
         </div>
-        
+
         <button
           onClick={onRemove}
           className="text-gray-400 hover:text-gray-600"
@@ -177,7 +174,9 @@ const ResultCard: React.FC<ResultCardProps> = ({
 
       {hexValues.length > 0 && (
         <div className="mb-4 space-y-2">
-          <h4 className="text-sm font-medium text-wrap">Quick Access Values:</h4>
+          <h4 className="text-sm font-medium text-wrap">
+            Quick Access Values:
+          </h4>
           <div className="space-y-1 max-h-32 overflow-y-auto text-sm text-wrap">
             {hexValues.map((hexVal, idx) => {
               const fieldId = `${method}-${idx}`;
@@ -209,5 +208,3 @@ const ResultCard: React.FC<ResultCardProps> = ({
     </div>
   );
 };
-
-export default ResultCard;

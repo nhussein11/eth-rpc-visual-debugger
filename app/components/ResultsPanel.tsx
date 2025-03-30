@@ -1,5 +1,5 @@
 import React from "react";
-import ResultCard from "./ResultCard";
+import { ResultCard } from "./ResultCard";
 import { ResultType } from "../types";
 
 interface ResultsPanelProps {
@@ -9,19 +9,17 @@ interface ResultsPanelProps {
   removeRequest: (method: string) => void;
 }
 
-const ResultsPanel: React.FC<ResultsPanelProps> = ({
+export const ResultsPanel = ({
   activeRequests,
   results,
   loading,
   removeRequest,
-}) => {
-    console.log("activeRequests: " + activeRequests)
+}: ResultsPanelProps) => {
+  console.log("activeRequests: " + activeRequests);
   return (
     <div className="w-96 space-y-6 h-full">
       <div className="flex justify-between items-center">
-        <h2 className="text-xl font-semibold">
-          Results ({results.length})
-        </h2>
+        <h2 className="text-xl font-semibold">Results ({results.length})</h2>
       </div>
 
       <div className="h-full flex flex-col gap-4 pb-8 overflow-y-auto">
@@ -41,5 +39,3 @@ const ResultsPanel: React.FC<ResultsPanelProps> = ({
     </div>
   );
 };
-
-export default ResultsPanel;
