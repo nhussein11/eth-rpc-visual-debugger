@@ -1,103 +1,303 @@
-import Image from "next/image";
+"use client";
+
+import { useState, useEffect } from "react";
+import MethodSelector from "./components/MethodSelector";
+import InputForm from "./components/InputForm";
+import ResultsPanel from "./components/ResultsPanel";
+import { MethodConfig, FormDataType, ResultType } from "./types";
 
 export default function Home() {
-  return (
-    <div className="grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20 font-[family-name:var(--font-geist-sans)]">
-      <main className="flex flex-col gap-[32px] row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="list-inside list-decimal text-sm/6 text-center sm:text-left font-[family-name:var(--font-geist-mono)]">
-          <li className="mb-2 tracking-[-.01em]">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] px-1 py-0.5 rounded font-[family-name:var(--font-geist-mono)] font-semibold">
-              app/page.tsx
-            </code>
-            .
-          </li>
-          <li className="tracking-[-.01em]">
-            Save and see your changes instantly.
-          </li>
-        </ol>
+  const [selectedMethod, setSelectedMethod] = useState<string | null>(null);
+  const [activeRequests, setActiveRequests] = useState<string[]>([]);
+  const [results, setResults] = useState<
+    Array<{ id: string; method: string; result: ResultType }>
+  >([]);
+  const [loading, setLoading] = useState<Record<string, boolean>>({});
+  const [formData, setFormData] = useState<FormDataType>({
+    address: "",
+    blockValue: "latest",
+    blockHash: "",
+    showFullTransactions: false,
+    recipientAddress: "",
+    encodedCall: "",
+    storageKey: "",
+    gasLimit: "90000",
+    gasPrice: "",
+    value: "0",
+    inputData: "",
+    nonce: "",
+    callData: "",
+  });
 
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:w-auto"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 w-full sm:w-auto md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
+  useEffect(() => {
+    if (
+      selectedMethod &&
+      !activeRequests.includes(selectedMethod) &&
+      results[selectedMethod]
+    ) {
+      setActiveRequests((prev) => [...prev, selectedMethod]);
+    }
+  }, [results, selectedMethod, activeRequests]);
+
+  const handleInputChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
+  ) => {
+    const { name, value, type } = e.target;
+    const checked = (e.target as HTMLInputElement).checked;
+
+    setFormData({
+      ...formData,
+      [name]: type === "checkbox" ? checked : value,
+    });
+  };
+
+  const executeRpcCall = async (method: string, params: any[] = []) => {
+    // const requestId = `${method}-${new Date().toLocaleTimeString(undefined, { hour12: false })}`;
+    const requestId = `${method}-${results.length + 1}`;
+    setLoading((prev) => ({ ...prev, [requestId]: true }));
+
+    try {
+      const response = await fetch(
+        "https://westend-asset-hub-eth-rpc.polkadot.io",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            method,
+            params,
+            id: 1,
+            jsonrpc: "2.0",
+          }),
+        }
+      );
+      const data = await response.json();
+      console.log("results", { id: requestId, method: method, data: data });
+      setResults((prev) => [...prev, { id: requestId, method, result: data }]);
+      setActiveRequests((prev) => [...prev, requestId]);
+    } catch (error) {
+      console.error(`Error executing ${method}:`, error);
+      setResults((prev) => [
+        ...prev,
+        { id: requestId, method, result: { error: (error as Error).message } },
+      ]);
+    } finally {
+      setLoading((prev) => ({ ...prev, [requestId]: false }));
+    }
+  };
+
+  const methodConfigs: Record<string, MethodConfig> = {
+    eth_accounts: {
+      execute: () => executeRpcCall("eth_accounts"),
+      fields: [],
+    },
+    eth_blockNumber: {
+      execute: () => executeRpcCall("eth_blockNumber"),
+      fields: [],
+    },
+    eth_call: {
+      execute: () => {
+        if (!formData.recipientAddress)
+          return alert("Recipient address is required");
+        const callObj = {
+          to: formData.recipientAddress,
+          data: formData.encodedCall,
+        };
+        if (formData.address) callObj.from = formData.address;
+        executeRpcCall("eth_call", [callObj, formData.blockValue]);
+      },
+      fields: ["address", "recipientAddress", "encodedCall", "blockValue"],
+    },
+    eth_chainId: {
+      execute: () => executeRpcCall("eth_chainId"),
+      fields: [],
+    },
+    eth_estimateGas: {
+      execute: () => {
+        if (!formData.recipientAddress)
+          return alert("Recipient address is required");
+        const callObj = {
+          to: formData.recipientAddress,
+          data: formData.encodedCall,
+        };
+        if (formData.address) callObj.from = formData.address;
+        executeRpcCall("eth_estimateGas", [callObj]);
+      },
+      fields: ["address", "recipientAddress", "encodedCall"],
+    },
+    eth_gasPrice: {
+      execute: () => executeRpcCall("eth_gasPrice"),
+      fields: [],
+    },
+    eth_getBalance: {
+      execute: () => {
+        if (!formData.address) return alert("Address is required");
+        executeRpcCall("eth_getBalance", [
+          formData.address,
+          formData.blockValue,
+        ]);
+      },
+      fields: ["address", "blockValue"],
+    },
+    eth_getBlockByHash: {
+      execute: () => {
+        if (!formData.blockHash) return alert("Block hash is required");
+        executeRpcCall("eth_getBlockByHash", [
+          formData.blockHash,
+          formData.showFullTransactions,
+        ]);
+      },
+      fields: ["blockHash", "showFullTransactions"],
+    },
+    eth_getBlockByNumber: {
+      execute: () => {
+        executeRpcCall("eth_getBlockByNumber", [
+          formData.blockValue,
+          formData.showFullTransactions,
+        ]);
+      },
+      fields: ["blockValue", "showFullTransactions"],
+    },
+    eth_getCode: {
+      execute: () => {
+        if (!formData.address) return alert("Address is required");
+        executeRpcCall("eth_getCode", [formData.address, formData.blockValue]);
+      },
+      fields: ["address", "blockValue"],
+    },
+    eth_getStorageAt: {
+      execute: () => {
+        if (!formData.address) return alert("Address is required");
+        if (!formData.storageKey) return alert("Storage key is required");
+        executeRpcCall("eth_getStorageAt", [
+          formData.address,
+          formData.storageKey,
+          formData.blockValue,
+        ]);
+      },
+      fields: ["address", "storageKey", "blockValue"],
+    },
+    eth_getTransactionCount: {
+      execute: () => {
+        if (!formData.address) return alert("Address is required");
+        executeRpcCall("eth_getTransactionCount", [
+          formData.address,
+          formData.blockValue,
+        ]);
+      },
+      fields: ["address", "blockValue"],
+    },
+    eth_maxPriorityFeePerGas: {
+      execute: () => executeRpcCall("eth_maxPriorityFeePerGas"),
+      fields: [],
+    },
+    eth_sendRawTransaction: {
+      execute: () => {
+        if (!formData.callData) return alert("Call data is required");
+        executeRpcCall("eth_sendRawTransaction", [formData.callData]);
+      },
+      fields: ["callData"],
+    },
+    eth_sendTransaction: {
+      execute: () => {
+        if (!formData.address) return alert("From address is required");
+        const txObj = {
+          from: formData.address,
+        };
+
+        if (formData.recipientAddress) txObj.to = formData.recipientAddress;
+        if (formData.gasLimit) txObj.gas = formData.gasLimit;
+        if (formData.gasPrice) txObj.gasPrice = formData.gasPrice;
+        if (formData.value) txObj.value = formData.value;
+        if (formData.inputData) txObj.data = formData.inputData;
+        if (formData.nonce) txObj.nonce = formData.nonce;
+
+        executeRpcCall("eth_sendTransaction", [txObj]);
+      },
+      fields: [
+        "address",
+        "recipientAddress",
+        "gasLimit",
+        "gasPrice",
+        "value",
+        "inputData",
+        "nonce",
+      ],
+    },
+    net_version: {
+      execute: () => executeRpcCall("net_version"),
+      fields: [],
+    },
+  };
+
+  const removeRequest = (method: string) => {
+    setActiveRequests((prev) => prev.filter((req) => req !== method));
+  };
+
+  return (
+    <div className="h-full flex flex-col">
+      <header className="sticky top-0 flex flex-row justify-between border-b-2 border-pink-500 text-black p-4">
+        <h1 className="text-xl font-bold">ETH RPC Visual Debugger - Asset Hub</h1>
+        <span
+          className="cursor-pointer font-sans italic"
+          onClick={() =>
+            window.open(
+              "https://polkadot.js.org/apps/?rpc=wss%3A%2F%2Fasset-hub-westend.dotters.network#/explorer",
+              "_blank"
+            )
+          }
+        >
+          https://westend-asset-hub-eth-rpc.polkadot.io
+        </span>
+      </header>
+
+      <div className="flex flex-1 overflow-hidden max-h-screen">
+        <div className="w-72 p-4 shadow-md overflow-y-auto">
+          <MethodSelector
+            methodConfigs={methodConfigs}
+            selectedMethod={selectedMethod}
+            setSelectedMethod={setSelectedMethod}
+          />
         </div>
-      </main>
-      <footer className="row-start-3 flex gap-[24px] flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
+
+        <div className="w-full flex justify-between p-6 border border-red-400">
+          {selectedMethod && (
+            <div className="w-full pr-14 mt-6">
+              <InputForm
+                formData={formData}
+                handleInputChange={handleInputChange}
+                requiredFields={methodConfigs[selectedMethod]?.fields || []}
+              />
+
+              <div className="mt-4">
+                <button
+                  onClick={() => methodConfigs[selectedMethod]?.execute()}
+                  className={`bg-pink-500 w-32 text-white px-4 py-2 rounded hover:bg-pink-600 hover:cursor-pointer`}
+                >
+                  Execute
+                </button>
+              </div>
+            </div>
+          )}
+          {activeRequests.length > 0 ? (
+            <ResultsPanel
+              activeRequests={activeRequests}
+              results={results}
+              loading={loading}
+              removeRequest={removeRequest}
+              methodConfigs={methodConfigs}
+            />
+          ) : (
+            <div className="flex items-center text-center justify-center w-full h-full">
+              <p className="text-gray-500">
+                Select a method from the sidebar, configure parameters, and
+                execute to see results
+              </p>
+            </div>
+          )}
+        </div>
+      </div>
     </div>
   );
 }
