@@ -31,12 +31,15 @@ const ResultCard: React.FC<ResultCardProps> = ({
         if (numeric < BigInt(1000000000000)) {
           return Number(numeric);
         }
-      } catch (e) {}
+      } catch (e: unknown) {
+        console.error("Invalid hex value: ", value);
+        console.error(e);
+      }
     }
     return value;
   };
 
-  const findHexValues = (obj: any, currentPath: string[] = []): HexValue[] => {
+  const findHexValues = (obj: unknown, currentPath: string[] = []): HexValue[] => {
     if (!obj) return [];
     let hexValues: HexValue[] = [];
     if (typeof obj === "string" && obj.startsWith("0x")) {
@@ -73,7 +76,7 @@ const ResultCard: React.FC<ResultCardProps> = ({
     }
   };
 
-  const transformResult = (obj: any): any => {
+  const transformResult = (obj: unknown): unknown => {
     if (!obj) return obj;
     if (
       typeof obj === "string" &&
@@ -86,7 +89,7 @@ const ResultCard: React.FC<ResultCardProps> = ({
     if (Array.isArray(obj)) {
       return obj.map((item) => transformResult(item));
     }
-    const transformed: Record<string, any> = {};
+    const transformed: Record<string, unknown> = {};
     Object.entries(obj).forEach(([key, value]) => {
       transformed[key] = transformResult(value);
     });
@@ -144,20 +147,20 @@ const ResultCard: React.FC<ResultCardProps> = ({
         <div className="flex h-8 rounded-full overflow-hidden border border-gray-200">
           <button
             onClick={() => setDisplayMode("hex")}
-            className={`px-3 py-1 text-xs font-medium transition-colors duration-200 ${
+            className={`px-3 py-1 text-xs font-medium cursor-pointer transition-colors duration-200 ${
               displayMode === "hex" 
                 ? "bg-pink-500 text-white" 
-                : "bg-white text-gray-700 hover:bg-gray-50"
+                : "bg-white text-gray-700 hover:bg-gray-300"
             }`}
           >
             Hex
           </button>
           <button
             onClick={() => setDisplayMode("readable")}
-            className={`px-3 py-1 text-xs font-medium transition-colors duration-200 ${
+            className={`px-3 py-1 text-xs font-medium cursor-pointer transition-colors duration-200 ${
               displayMode === "readable" 
                 ? "bg-pink-500 text-white" 
-                : "bg-white text-gray-700 hover:bg-gray-50"
+                : "bg-white text-gray-700 hover:bg-gray-300"
             }`}
           >
             Readable

@@ -20,7 +20,7 @@ export interface FormDataType {
   }
   
   export interface ResultType {
-    result?: any;
+    result?: unknown;
     error?: string | { message: string };
     id?: number;
     jsonrpc?: string;

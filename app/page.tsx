@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import MethodSelector from "./components/MethodSelector";
 import InputForm from "./components/InputForm";
 import ResultsPanel from "./components/ResultsPanel";
@@ -29,16 +29,6 @@ export default function Home() {
     callData: "",
   });
 
-  useEffect(() => {
-    if (
-      selectedMethod &&
-      !activeRequests.includes(selectedMethod) &&
-      results[selectedMethod]
-    ) {
-      setActiveRequests((prev) => [...prev, selectedMethod]);
-    }
-  }, [results, selectedMethod, activeRequests]);
-
   const handleInputChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
   ) => {
@@ -47,12 +37,27 @@ export default function Home() {
 
     setFormData({
       ...formData,
-      [name]: type === "checkbox" ? checked : value,
+      [name as keyof FormDataType]: type === "checkbox" ? checked : value,
     });
   };
 
-  const executeRpcCall = async (method: string, params: any[] = []) => {
-    // const requestId = `${method}-${new Date().toLocaleTimeString(undefined, { hour12: false })}`;
+  interface CallObject {
+    to: string;
+    data: string;
+    from?: string;
+  }
+
+  interface TransactionObject {
+    from: string;
+    to?: string;
+    gas?: string;
+    gasPrice?: string;
+    value?: string;
+    data?: string;
+    nonce?: string;
+  }
+
+  const executeRpcCall = async (method: string, params: unknown[] = []) => {
     const requestId = `${method}-${results.length + 1}`;
     setLoading((prev) => ({ ...prev, [requestId]: true }));
 
@@ -73,7 +78,6 @@ export default function Home() {
         }
       );
       const data = await response.json();
-      console.log("results", { id: requestId, method: method, data: data });
       setResults((prev) => [...prev, { id: requestId, method, result: data }]);
       setActiveRequests((prev) => [...prev, requestId]);
     } catch (error) {
@@ -100,7 +104,7 @@ export default function Home() {
       execute: () => {
         if (!formData.recipientAddress)
           return alert("Recipient address is required");
-        const callObj = {
+        const callObj: CallObject = {
           to: formData.recipientAddress,
           data: formData.encodedCall,
         };
@@ -117,7 +121,7 @@ export default function Home() {
       execute: () => {
         if (!formData.recipientAddress)
           return alert("Recipient address is required");
-        const callObj = {
+        const callObj: CallObject = {
           to: formData.recipientAddress,
           data: formData.encodedCall,
         };
@@ -202,7 +206,7 @@ export default function Home() {
     eth_sendTransaction: {
       execute: () => {
         if (!formData.address) return alert("From address is required");
-        const txObj = {
+        const txObj: TransactionObject = {
           from: formData.address,
         };
 
@@ -286,7 +290,6 @@ export default function Home() {
               results={results}
               loading={loading}
               removeRequest={removeRequest}
-              methodConfigs={methodConfigs}
             />
           ) : (
             <div className="flex items-center text-center justify-center w-full h-full">

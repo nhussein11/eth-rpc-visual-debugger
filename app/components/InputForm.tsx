@@ -8,14 +8,8 @@ interface InputFormProps {
 }
 
 const InputForm: React.FC<InputFormProps> = ({ formData, handleInputChange, requiredFields }) => {
-  // Map of field names to their label and component type
   const fieldConfig: Record<string, FieldConfigType> = {
-    address: { 
-      label: "Address", 
-      type: "text", 
-      placeholder: "0x...",
-      component: "input" 
-    },
+    address: { label: "Address", type: "text", placeholder: "0x...", component: "input" },
     blockValue: { 
       label: "Block Value", 
       type: "select", 
@@ -25,76 +19,21 @@ const InputForm: React.FC<InputFormProps> = ({ formData, handleInputChange, requ
         { value: "pending", label: "pending" },
         { value: "0x1", label: "Block 0x1" }
       ],
-      component: "select" 
+      component: "select"
     },
-    blockHash: { 
-      label: "Block Hash", 
-      type: "text", 
-      placeholder: "0x...",
-      component: "input" 
-    },
-    showFullTransactions: { 
-      label: "Show Full Transactions", 
-      type: "checkbox",
-      component: "checkbox" 
-    },
-    recipientAddress: { 
-      label: "Recipient Address", 
-      type: "text", 
-      placeholder: "0x...",
-      component: "input" 
-    },
-    encodedCall: { 
-      label: "Encoded Call Data", 
-      type: "text", 
-      placeholder: "0x...",
-      component: "input" 
-    },
-    storageKey: { 
-      label: "Storage Key", 
-      type: "text", 
-      placeholder: "0x...",
-      component: "input" 
-    },
-    gasLimit: { 
-      label: "Gas Limit", 
-      type: "text", 
-      placeholder: "90000",
-      component: "input" 
-    },
-    gasPrice: { 
-      label: "Gas Price", 
-      type: "text", 
-      placeholder: "0x...",
-      component: "input" 
-    },
-    value: { 
-      label: "Value (Wei)", 
-      type: "text", 
-      placeholder: "0",
-      component: "input" 
-    },
-    inputData: { 
-      label: "Input Data", 
-      type: "text", 
-      placeholder: "0x...",
-      component: "input" 
-    },
-    nonce: { 
-      label: "Nonce", 
-      type: "text", 
-      placeholder: "0x...",
-      component: "input" 
-    },
-    callData: { 
-      label: "Raw Transaction Data", 
-      type: "text", 
-      placeholder: "0x...",
-      component: "input" 
-    }
+    blockHash: { label: "Block Hash", type: "text", placeholder: "0x...", component: "input" },
+    showFullTransactions: { label: "Show Full Transactions", type: "checkbox", component: "checkbox" },
+    recipientAddress: { label: "Recipient Address", type: "text", placeholder: "0x...", component: "input" },
+    encodedCall: { label: "Encoded Call Data", type: "text", placeholder: "0x...", component: "input" },
+    storageKey: { label: "Storage Key", type: "text", placeholder: "0x...", component: "input" },
+    gasLimit: { label: "Gas Limit", type: "text", placeholder: "90000", component: "input" },
+    gasPrice: { label: "Gas Price", type: "text", placeholder: "0x...", component: "input" },
+    value: { label: "Value (Wei)", type: "text", placeholder: "0", component: "input" },
+    inputData: { label: "Input Data", type: "text", placeholder: "0x...", component: "input" },
+    nonce: { label: "Nonce", type: "text", placeholder: "0x...", component: "input" },
+    callData: { label: "Raw Transaction Data", type: "text", placeholder: "0x...", component: "input" }
   };
 
-  // Only render fields that are required for the selected method
   if (requiredFields.length === 0) {
     return <p className="text-gray-500">No input parameters required</p>;
   }
@@ -115,7 +54,7 @@ const InputForm: React.FC<InputFormProps> = ({ formData, handleInputChange, requ
                 type="checkbox"
                 id={field}
                 name={field}
-                checked={formData[field] as boolean}
+                checked={formData[field as keyof FormDataType] as boolean}
                 onChange={handleInputChange}
                 className="h-4 w-4 text-blue-600"
               />
@@ -132,7 +71,7 @@ const InputForm: React.FC<InputFormProps> = ({ formData, handleInputChange, requ
               <label className="block text-sm font-medium text-gray-700 mb-1">{config.label}</label>
               <select
                 name={field}
-                value={formData[field] as string}
+                value={formData[field as keyof FormDataType] as string}
                 onChange={handleInputChange}
                 className="w-full p-2 border rounded"
               >
@@ -150,7 +89,7 @@ const InputForm: React.FC<InputFormProps> = ({ formData, handleInputChange, requ
             <input
               type={config.type}
               name={field}
-              value={formData[field] as string}
+              value={formData[field as keyof FormDataType] as string}
               onChange={handleInputChange}
               placeholder={config.placeholder}
               className="w-full p-2 border rounded"
@@ -162,4 +101,4 @@ const InputForm: React.FC<InputFormProps> = ({ formData, handleInputChange, requ
   );
 };
 
-export default InputForm;
+export default InputForm

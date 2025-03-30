@@ -1,5 +1,5 @@
 import React from "react";
-import { MethodConfig, ResultType } from "../types";
+import { MethodConfig } from "../types";
 
 interface MethodSelectorProps {
   methodConfigs: Record<string, MethodConfig>
