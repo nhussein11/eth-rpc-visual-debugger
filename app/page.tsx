@@ -12,6 +12,7 @@ import {
   CallObject,
   TransactionObject,
 } from "./types";
+import { showToast } from "./utils/showToast";
 
 const WESTEND_AH_RPC_ENDPOINT = "https://westend-asset-hub-eth-rpc.polkadot.io";
 
@@ -55,21 +56,18 @@ export default function Home() {
     setLoading((prev) => ({ ...prev, [requestId]: true }));
 
     try {
-      const response = await fetch(
-        WESTEND_AH_RPC_ENDPOINT,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            method,
-            params,
-            id: 1,
-            jsonrpc: "2.0",
-          }),
-        }
-      );
+      const response = await fetch(WESTEND_AH_RPC_ENDPOINT, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          method,
+          params,
+          id: 1,
+          jsonrpc: "2.0",
+        }),
+      });
       const data = await response.json();
       setResults((prev) => [...prev, { id: requestId, method, result: data }]);
       setActiveRequests((prev) => [...prev, requestId]);
@@ -95,8 +93,9 @@ export default function Home() {
     },
     eth_call: {
       execute: () => {
-        if (!formData.recipientAddress)
-          return alert("Recipient address is required");
+        if (!formData.recipientAddress) {
+          return showToast("Recipient address is required");
+        }
         const callObj: CallObject = {
           to: formData.recipientAddress,
           data: formData.encodedCall,
@@ -112,8 +111,9 @@ export default function Home() {
     },
     eth_estimateGas: {
       execute: () => {
-        if (!formData.recipientAddress)
-          return alert("Recipient address is required");
+        if (!formData.recipientAddress) {
+          return showToast("Recipient address is required");
+        }
         const callObj: CallObject = {
           to: formData.recipientAddress,
           data: formData.encodedCall,
@@ -129,7 +129,7 @@ export default function Home() {
     },
     eth_getBalance: {
       execute: () => {
-        if (!formData.address) return alert("Address is required");
+        if (!formData.address) return showToast("Address is required");
         executeRpcCall("eth_getBalance", [
           formData.address,
           formData.blockValue,
@@ -139,7 +139,7 @@ export default function Home() {
     },
     eth_getBlockByHash: {
       execute: () => {
-        if (!formData.blockHash) return alert("Block hash is required");
+        if (!formData.blockHash) return showToast("Block hash is required");
         executeRpcCall("eth_getBlockByHash", [
           formData.blockHash,
           formData.showFullTransactions,
@@ -158,15 +158,15 @@ export default function Home() {
     },
     eth_getCode: {
       execute: () => {
-        if (!formData.address) return alert("Address is required");
+        if (!formData.address) return showToast("Address is required");
         executeRpcCall("eth_getCode", [formData.address, formData.blockValue]);
       },
       fields: ["address", "blockValue"],
     },
     eth_getStorageAt: {
       execute: () => {
-        if (!formData.address) return alert("Address is required");
-        if (!formData.storageKey) return alert("Storage key is required");
+        if (!formData.address) return showToast("Address is required");
+        if (!formData.storageKey) return showToast("Storage key is required");
         executeRpcCall("eth_getStorageAt", [
           formData.address,
           formData.storageKey,
@@ -177,7 +177,7 @@ export default function Home() {
     },
     eth_getTransactionCount: {
       execute: () => {
-        if (!formData.address) return alert("Address is required");
+        if (!formData.address) return showToast("Address is required");
         executeRpcCall("eth_getTransactionCount", [
           formData.address,
           formData.blockValue,
@@ -191,14 +191,14 @@ export default function Home() {
     },
     eth_sendRawTransaction: {
       execute: () => {
-        if (!formData.callData) return alert("Call data is required");
+        if (!formData.callData) return showToast("Call data is required");
         executeRpcCall("eth_sendRawTransaction", [formData.callData]);
       },
       fields: ["callData"],
     },
     eth_sendTransaction: {
       execute: () => {
-        if (!formData.address) return alert("From address is required");
+        if (!formData.address) return showToast("From address is required");
         const txObj: TransactionObject = {
           from: formData.address,
         };
