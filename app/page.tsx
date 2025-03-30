@@ -5,6 +5,7 @@ import MethodSelector from "./components/MethodSelector";
 import InputForm from "./components/InputForm";
 import ResultsPanel from "./components/ResultsPanel";
 import { MethodConfig, FormDataType, ResultType } from "./types";
+import { Header } from "./components/Header";
 
 export default function Home() {
   const [selectedMethod, setSelectedMethod] = useState<string | null>(null);
@@ -241,21 +242,7 @@ export default function Home() {
 
   return (
     <div className="h-full flex flex-col">
-      <header className="sticky top-0 flex flex-row justify-between border-b-2 border-pink-500 text-black p-4">
-        <h1 className="text-xl font-bold">ETH RPC Visual Debugger - Asset Hub</h1>
-        <span
-          className="cursor-pointer font-sans italic"
-          onClick={() =>
-            window.open(
-              "https://polkadot.js.org/apps/?rpc=wss%3A%2F%2Fasset-hub-westend.dotters.network#/explorer",
-              "_blank"
-            )
-          }
-        >
-          https://westend-asset-hub-eth-rpc.polkadot.io
-        </span>
-      </header>
-
+      <Header />
       <div className="flex flex-1 overflow-hidden max-h-screen">
         <div className="w-72 p-4 shadow-md overflow-y-auto">
           <MethodSelector
